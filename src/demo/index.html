@@ -29,9 +29,11 @@
 
             require(['pkg:extender-experiment-portlet@1.0.0'], function(me) {
                 me.render();
+                require(['pkg:isarray@2.0.1'], function(isarray) {console.log('+1', isarray)});
             }, function(error) {
                 console.error(error);
             });
+
         </script>
 
         <!--script>

@@ -91,9 +91,13 @@ PkgLoader.prototype = {
             moduleName += '/' + pkgConfig.main;
         }
 
-        var url = moduleName.replace(pkgName, pkgConfig.path);
+        if (self._modules[moduleName]) {
+            return self._modules[moduleName].promise;
+        } else {
+            var url = moduleName.replace(pkgName, pkgConfig.path);
 
-        return self._loadModule(moduleName, url);
+            return self._loadModule(moduleName, url);
+        }
     },
 
     /*
@@ -117,39 +121,41 @@ PkgLoader.prototype = {
 
         console.log('LOAD', url);
 
-        var promise = new Promise(function(resolve, reject) {
-            var moduleDesc = {
-                exports: undefined,
-                promise: promise,
-                _resolve: function(module) {
-                    console.log('RESOLVED', url);
-                    moduleDesc.exports = module;
-                    delete moduleDesc._resolve;
-                    delete moduleDesc._reject;
-                    resolve(module);
-                },
-                _reject: function(err) {
-                    console.log('REJECTED', url, err);
-                    delete moduleDesc._resolve;
-                    delete moduleDesc._reject;
-                    reject(err);
-                }
-            };
+        var moduleDesc = self._modules[moduleName] = {
+            exports: undefined,
+            promise: undefined,
+            _resolve: undefined,
+            _reject: undefined
+        };
 
-            self._modules[moduleName] = moduleDesc;
+        moduleDesc.promise = new Promise(function(resolve, reject) {
+            moduleDesc._resolve = function(module) {
+                console.log('RESOLVED', url);
+                moduleDesc.exports = module;
+                delete moduleDesc._resolve;
+                delete moduleDesc._reject;
+                resolve(module);
+            }
 
-            self._loadScript(url).then(function() {
-                // // TODO: tune timeout
-                // window.setTimeout(function() {
-                //     console.log('ERRORED', url);
-                // }, 5000);
-            })
-            .catch(function(error) {
-                reject(error);
-            });
+            moduleDesc._reject = function(err) {
+                console.log('REJECTED', url, err);
+                delete moduleDesc._resolve;
+                delete moduleDesc._reject;
+                reject(err);
+            }
         });
 
-        return promise;
+        self._loadScript(url).then(function() {
+            // // TODO: tune warning timeout
+            // window.setTimeout(function() {
+            //     console.log('TIMEOUT', url);
+            // }, 5000);
+        })
+        .catch(function(err) {
+            console.log('ERRORED', url, err);
+        });
+
+        return moduleDesc.promise;
     },
 
     /*
