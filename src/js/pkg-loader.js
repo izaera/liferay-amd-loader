@@ -29,11 +29,6 @@ PkgLoader.prototype = {
         var pkgName = self._getPackageName(name);
         var pkgConfig = pkgsConfig[pkgName];
 
-        self._modules[name] = {
-            exports: undefined,
-            promise: undefined
-        };
-
         var resolvedDependencies = [];
         var promises = [];
         var exports;
@@ -69,10 +64,11 @@ PkgLoader.prototype = {
             implementation.apply(implementation, resolvedDependencies);
 
             console.log('DEFINED', name);
-            self._modules[name].exports = exports.exports || exports;
+            self._modules[name]._resolve(exports.exports || exports);
         })
         .catch(function(err) {
             console.log('ERROR defining module', name, err);
+            self._modules[name]._reject(err);
         })
     },
 
@@ -117,22 +113,43 @@ PkgLoader.prototype = {
      * is defined
      */
     _loadModule: function(moduleName, url) {
-        console.log('LOAD', url);
-
         var self = this;
 
-        return new Promise(function(resolve, reject) {
+        console.log('LOAD', url);
+
+        var promise = new Promise(function(resolve, reject) {
+            var moduleDesc = {
+                exports: undefined,
+                promise: promise,
+                _resolve: function(module) {
+                    console.log('RESOLVED', url);
+                    moduleDesc.exports = module;
+                    delete moduleDesc._resolve;
+                    delete moduleDesc._reject;
+                    resolve(module);
+                },
+                _reject: function(err) {
+                    console.log('REJECTED', url, err);
+                    delete moduleDesc._resolve;
+                    delete moduleDesc._reject;
+                    reject(err);
+                }
+            };
+
+            self._modules[moduleName] = moduleDesc;
+
             self._loadScript(url).then(function() {
-                // TODO: tune wait timeout
-                window.setTimeout(function() {
-                    console.log('REQUIRED', moduleName, self._modules[moduleName].exports);
-                    resolve(self._modules[moduleName].exports);
-                }, 500);
+                // // TODO: tune timeout
+                // window.setTimeout(function() {
+                //     console.log('ERRORED', url);
+                // }, 5000);
             })
             .catch(function(error) {
                 reject(error);
             });
         });
+
+        return promise;
     },
 
     /*

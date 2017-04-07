@@ -3,7 +3,8 @@ define('pkg:isarray@2.0.1/index.js', ['module'], function (module) {
 
   var toString = {}.toString;
 
-  module.exports = Array.isArray || function (arr) {
+  module.exports = /*Array.isArray ||*/ function (arr) {
+    console.log("isArray 2.0.1 called");
     return toString.call(arr) == '[object Array]';
   };
 });

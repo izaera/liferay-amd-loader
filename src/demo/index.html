@@ -15,17 +15,23 @@
         <script src="//localhost:8000/loader-debug.js"></script>
 
         <script>
-            require(['pkg:isobject@2.1.0'], function(und) {
-                console.log(und);
-            }, function(error) {
-                console.error(error);
-            });
-
-            // require(['pkg:extender-experiment-portlet@1.0.0'], function(und) {
-            //     console.log(und);
+            // require(['pkg:isobject@2.1.0'], function(und) {
+            //     console.log(und({}));
             // }, function(error) {
             //     console.error(error);
             // });
+            //
+            // require(['pkg:isarray@2.0.1'], function(und) {
+            //     console.log(und({}));
+            // }, function(error) {
+            //     console.error(error);
+            // });
+
+            require(['pkg:extender-experiment-portlet@1.0.0'], function(me) {
+                me.render();
+            }, function(error) {
+                console.error(error);
+            });
         </script>
 
         <!--script>
