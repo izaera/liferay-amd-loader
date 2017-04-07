@@ -110,14 +110,15 @@ gulp.task('create-loader-pure', ['create-loader-pure-debug'], function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('create-loader-pure-wrapped', ['jsdoc', 'wrap-event-emitter', 'wrap-config-parser', 'wrap-dependency-builder', 'wrap-path-resolver', 'wrap-url-builder', 'wrap-script-loader'], function() {
+gulp.task('create-loader-pure-wrapped', ['jsdoc', 'wrap-event-emitter', 'wrap-config-parser', 'wrap-dependency-builder', 'wrap-path-resolver', 'wrap-url-builder', 'wrap-script-loader', 'wrap-pkg-loader'], function() {
     return gulp.src([
             'umd/event-emitter.js',
             'umd/config-parser.js',
             'umd/dependency-builder.js',
             'umd/url-builder.js',
             'umd/path-resolver.js',
-            'umd/script-loader.js'
+            'umd/script-loader.js',
+            'umd/pkg-loader.js'
         ])
         .pipe(concat('loader-pure-wrapped.js'))
         .pipe(gulp.dest('dist'));
@@ -146,7 +147,12 @@ gulp.task('modules3', function() {
         .pipe(gulp.dest('dist/demo/modules3'));
 });
 
-gulp.task('modules', ['copy-bower', 'modules2', 'modules3'], function() {
+gulp.task('packages', function() {
+    return gulp.src('src/packages/**/*')
+        .pipe(gulp.dest('dist/demo/packages'));
+});
+
+gulp.task('modules', ['copy-bower', 'modules2', 'modules3', 'packages'], function() {
     return gulp.src('src/modules/**/*.js')
         .pipe(babel({
             plugins: ['transform-es2015-modules-amd']
@@ -180,6 +186,15 @@ gulp.task('wrap-config-parser', function() {
             source: fs.readFileSync('src/js/config-parser.js').toString()
         }))
         .pipe(rename('config-parser.js'))
+        .pipe(gulp.dest('umd'));
+});
+
+gulp.task('wrap-pkg-loader', function() {
+    return gulp.src('src/template/pkg-loader.template')
+        .pipe(template({
+            source: fs.readFileSync('src/js/pkg-loader.js').toString()
+        }))
+        .pipe(rename('pkg-loader.js'))
         .pipe(gulp.dest('umd'));
 });
 

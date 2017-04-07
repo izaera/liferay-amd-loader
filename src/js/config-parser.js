@@ -148,6 +148,9 @@ ConfigParser.prototype = {
             if (Object.prototype.hasOwnProperty.call(config, key)) {
                 if (key === 'modules') {
                     this._parseModules(config[key]);
+                } else if (key === 'packages') {
+                    // TODO: parse packages as we do with modules
+                    this._config[key] = config[key];
                 } else {
                     this._config[key] = config[key];
                 }

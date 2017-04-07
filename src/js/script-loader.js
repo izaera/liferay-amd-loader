@@ -67,6 +67,10 @@ var LoaderProtoMethods = {
         var implementation = arguments[2];
         var config = arguments[3] || {};
 
+        if (name.indexOf('pkg:') == 0) {
+            return self._getPkgLoader().define(name.substring(4), dependencies, implementation, config);
+        }
+
         console.log('DEFINE', name, dependencies);
 
         config.anonymous = false;
@@ -183,6 +187,10 @@ var LoaderProtoMethods = {
                     break;
                 }
             }
+        }
+
+        if ((modules.length == 1) && (modules[0].indexOf('pkg:') == 0)) {
+            return self._getPkgLoader().require(modules[0].substring(4), successCallback, failureCallback);
         }
 
         console.log('REQUIRE called with', modules);
@@ -344,6 +352,21 @@ var LoaderProtoMethods = {
         }
 
         this.emit('moduleRegister', name);
+    },
+
+    /**
+     * Returns instance of {@link PkgLoader} class.
+     *
+     * @memberof! Loader#
+     * @protected
+     * @return {PkgLoader} Instance of {@link PkgLoader} class.
+     */
+    _getPkgLoader: function() { /* istanbul ignore else */
+        if (!this._pkgLoader) {
+            this._pkgLoader = new global.PkgLoader(this);
+        }
+
+        return this._pkgLoader;
     },
 
     /**

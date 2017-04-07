@@ -10,10 +10,25 @@
     <body>
         <h1>Alloy Loader like test page</h1>
 
-        <script src="//localhost:8080/demo/config/config.js"></script>
-        <script src="//localhost:8080/loader-debug.js"></script>
+        <script src="//localhost:8000/demo/config/config.js"></script>
+        <script src="//localhost:8000/demo/config/pkgs-config.js"></script>
+        <script src="//localhost:8000/loader-debug.js"></script>
 
         <script>
+            require(['pkg:isobject@2.1.0'], function(und) {
+                console.log(und);
+            }, function(error) {
+                console.error(error);
+            });
+
+            // require(['pkg:extender-experiment-portlet@1.0.0'], function(und) {
+            //     console.log(und);
+            // }, function(error) {
+            //     console.error(error);
+            // });
+        </script>
+
+        <!--script>
             __CONFIG__.maps['mappedModule'] = 'mapped-module';
             __CONFIG__.paths['mapped-module'] = '/modules2/mapped-module';
 
@@ -119,6 +134,6 @@
             }, function(error) {
                 console.error(error);
             });
-        </script>
+        </script-->
     </body>
 </html>
