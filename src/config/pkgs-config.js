@@ -1,3 +1,15 @@
+var __CONFIG__ = {
+    url: 'http://localhost:3000/combo?',
+    basePath: '/modules',
+    packagesPath: '/packages',
+    combine: true,
+    paths: {
+    }
+};
+__CONFIG__.maps = {
+};
+__CONFIG__.modules = {
+};
 __CONFIG__.packages = {
     "extender-experiment-portlet@1.0.0": {
         "path": "/demo/packages/extender-experiment-portlet@1.0.0",
@@ -24,4 +36,4 @@ __CONFIG__.packages = {
             "isarray": "1.0.0"
         }
     }
-}
+};

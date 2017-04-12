@@ -1,4 +1,4 @@
-define('pkg:isarray@1.0.0/index.js', ['module'], function (module) {
+define('isarray@1.0.0/index.js', ['module'], function (module) {
   'use strict';
 
   var toString = {}.toString;

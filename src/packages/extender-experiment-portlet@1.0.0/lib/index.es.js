@@ -1,4 +1,4 @@
-define('pkg:extender-experiment-portlet@1.0.0/lib/index.es.js', ['exports', 'isarray', 'isobject'], function (exports, _isarray, _isobject) {
+define('extender-experiment-portlet@1.0.0/lib/index.es.js', ['exports', 'isarray', 'isobject'], function (exports, _isarray, _isobject) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {

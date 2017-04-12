@@ -1,4 +1,4 @@
-define('pkg:isobject@2.1.0/index.js', ['module', 'isarray'], function (module, isArray) {
+define('isobject@2.1.0/index.js', ['module', 'isarray'], function (module, isArray) {
   /*!
    * isobject <https://github.com/jonschlinkert/isobject>
    *
