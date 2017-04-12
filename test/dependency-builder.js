@@ -5,6 +5,7 @@ require('./fixture/common.js');
 
 var config = require('./fixture/config.js');
 var configParser = new global.ConfigParser(config);
+var pkgLoader = {declarePackageModules: function(modules) {return modules;}}
 
 describe('DependencyBuilder', function() {
     it('should throw an exception if no modules are specified', function() {
@@ -28,7 +29,7 @@ describe('DependencyBuilder', function() {
     });
 
     it('should resolve module with dependecies and no conditional modules', function() {
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         assert.ok(dependencyBuilder);
 
@@ -38,7 +39,7 @@ describe('DependencyBuilder', function() {
     });
 
     it('should resolve module with dependecies and conditional modules', function() {
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         assert.ok(dependencyBuilder);
 
@@ -48,7 +49,7 @@ describe('DependencyBuilder', function() {
     });
 
     it('should resolve multiple modules', function() {
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         assert.ok(dependencyBuilder);
 
@@ -121,7 +122,7 @@ describe('DependencyBuilder', function() {
     it('should ignore "require" module', function() {
         var configParser = new global.ConfigParser();
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'aui-123',
@@ -141,7 +142,7 @@ describe('DependencyBuilder', function() {
     it('should ignore "exports" module', function() {
         var configParser = new global.ConfigParser();
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'aui-123',
@@ -161,7 +162,7 @@ describe('DependencyBuilder', function() {
     it('should ignore "module" module', function() {
         var configParser = new global.ConfigParser();
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'aui-123',
@@ -181,7 +182,7 @@ describe('DependencyBuilder', function() {
     it('should add dependencies on the fly', function() {
         var configParser = new global.ConfigParser();
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'test123',
@@ -204,7 +205,7 @@ describe('DependencyBuilder', function() {
             }
         });
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'test123',
@@ -223,7 +224,7 @@ describe('DependencyBuilder', function() {
     it('should resolve relative paths in module dependencies', function() {
         var configParser = new global.ConfigParser();
 
-        var dependencyBuilder = new global.DependencyBuilder(configParser);
+        var dependencyBuilder = new global.DependencyBuilder(configParser, pkgLoader);
 
         configParser.addModule({
             name: 'test/test123/sub1',

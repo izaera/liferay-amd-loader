@@ -108,6 +108,8 @@ describe('Loader', function() {
         global.__CONFIG__.paths = {};
 
         require('../umd/config-parser.js');
+        require('../umd/pkg-loader.js');
+        require('../umd/utils.js');
         require('../umd/event-emitter.js');
         require('../umd/script-loader.js');
     });

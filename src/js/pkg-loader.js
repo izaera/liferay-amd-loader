@@ -10,7 +10,7 @@
 function PkgLoader(loader, configParser) {
     this._loader = loader;
     this._config = configParser.getConfig();
-    this._pkgsConfig = this._config.packages;
+    this._pkgsConfig = this._config.packages || {};
 }
 
 PkgLoader.prototype = {
@@ -72,6 +72,10 @@ PkgLoader.prototype = {
     translatePackageDependencies: function(moduleName, dependencies) {
         var pkgConfig = this._getPkgConfig(moduleName);
 
+        if (!pkgConfig) {
+            return dependencies;
+        }
+
         var translatedDependencies = [];
 
         global.Utils.forEachDependency(
@@ -113,8 +117,12 @@ PkgLoader.prototype = {
             if (this._isPackageName(moduleName)) {
                 var pkgConfig = this._pkgsConfig[moduleName];
 
-                rewrittenModuleNames.push(moduleName + '/' + pkgConfig.main);
+                if (pkgConfig) {
+                    moduleName += '/' + pkgConfig.main;
+                }
             }
+
+            rewrittenModuleNames.push(moduleName);
         }
 
         return returnScalar ? rewrittenModuleNames[0] : rewrittenModuleNames;
