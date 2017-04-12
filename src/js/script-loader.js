@@ -67,10 +67,6 @@ var LoaderProtoMethods = {
         var implementation = arguments[2];
         var config = arguments[3] || {};
 
-        if (name.indexOf('pkg:') == 0) {
-            return self._getPkgLoader().define(name.substring(4), dependencies, implementation, config);
-        }
-
         console.log('DEFINE', name, dependencies);
 
         config.anonymous = false;
@@ -189,10 +185,6 @@ var LoaderProtoMethods = {
             }
         }
 
-        if ((modules.length == 1) && (modules[0].indexOf('pkg:') == 0)) {
-            return self._getPkgLoader().require(modules[0].substring(4), successCallback, failureCallback);
-        }
-
         console.log('REQUIRE called with', modules);
 
         var configParser = self._getConfigParser();
@@ -201,6 +193,8 @@ var LoaderProtoMethods = {
         var mappedModules = configParser.mapModule(modules);
 
         console.log('REQUIRE modules mapped to', mappedModules);
+
+        mappedModules = self._getPkgLoader().declarePackageModules(mappedModules);
 
         var rejectTimeout;
 
@@ -341,6 +335,8 @@ var LoaderProtoMethods = {
             return pathResolver.resolvePath(name, dependency);
         });
 
+        dependencies = this._getPkgLoader().translatePackageDependencies(name, dependencies);
+
         module.name = name;
         module.dependencies = dependencies;
         module.pendingImplementation = implementation;
@@ -363,7 +359,7 @@ var LoaderProtoMethods = {
      */
     _getPkgLoader: function() { /* istanbul ignore else */
         if (!this._pkgLoader) {
-            this._pkgLoader = new global.PkgLoader(this);
+            this._pkgLoader = new global.PkgLoader(this, this._configParser);
         }
 
         return this._pkgLoader;
@@ -393,7 +389,8 @@ var LoaderProtoMethods = {
      */
     _getDependencyBuilder: function() {
         if (!this._dependencyBuilder) {
-            this._dependencyBuilder = new global.DependencyBuilder(this._getConfigParser());
+            this._dependencyBuilder = new global.DependencyBuilder(
+                this._getConfigParser(), this._getPkgLoader());
         }
 
         return this._dependencyBuilder;
@@ -436,12 +433,24 @@ var LoaderProtoMethods = {
         var configParser = this._getConfigParser();
         var registeredModules = configParser.getModules();
 
+        var pkgLoader = this._getPkgLoader();
+
         var missingDependencies = Object.create(null);
 
         for (var i = 0; i < moduleNames.length; i++) {
             var module = registeredModules[moduleNames[i]];
 
             var mappedDependencies = configParser.mapModule(module.dependencies);
+
+            // Append main script to non keyword dependencies
+            global.Utils.forEachDependency(
+                mappedDependencies,
+                function(dependency, isKeyword, i) {
+                    if (!isKeyword) {
+                        mappedDependencies[i] = pkgLoader.appendMainScript(
+                            dependency);
+                    }
+                });
 
             for (var j = 0; j < mappedDependencies.length; j++) {
                 var dependency = mappedDependencies[j];

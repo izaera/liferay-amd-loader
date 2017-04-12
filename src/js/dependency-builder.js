@@ -8,8 +8,9 @@ var hasOwnProperty = Object.prototype.hasOwnProperty;
  * @constructor
  * @param {object} configParser - instance of {@link ConfigParser} object.
  */
-function DependencyBuilder(configParser) {
+function DependencyBuilder(configParser, pkgLoader) {
     this._configParser = configParser;
+    this._pkgLoader = pkgLoader;
     this._pathResolver = new global.PathResolver();
 
     this._result = [];
@@ -172,11 +173,19 @@ DependencyBuilder.prototype = {
                     continue;
                 }
 
+                if (module.dependencyVersions) {
+                    dependencyName += '@' + module.dependencyVersions[dependencyName];
+                }
+
                 // Resolve relative path and map the dependency to its alias
                 dependencyName = this._pathResolver.resolvePath(module.name, dependencyName);
 
                 // A module may have many dependencies so we should map them.
                 var mappedDependencyName = this._configParser.mapModule(dependencyName);
+
+                // Intercept package modules
+                mappedDependencyName = this._pkgLoader.declarePackageModules(mappedDependencyName);
+
                 var moduleDependency = modules[mappedDependencyName];
 
                 // Register on the fly all unregistered in the configuration dependencies as

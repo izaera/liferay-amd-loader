@@ -5,191 +5,154 @@
  *
  * @constructor
  * @param {object=} loader - The owning Loader object.
+ * @param {object=} configParser - The ConfigParser object.
  */
-function PkgLoader(loader) {
+function PkgLoader(loader, configParser) {
     this._loader = loader;
-    this._modules = {};
+    this._config = configParser.getConfig();
+    this._pkgsConfig = this._config.packages;
 }
 
 PkgLoader.prototype = {
     constructor: PkgLoader,
 
-    require: function(moduleName, successCallback, failureCallback) {
-        this._require(moduleName)
-            .then(successCallback)
-            .catch(failureCallback);
-    },
+    /**
+     * Declares requested modules on the fly if they are found to be living
+     * inside any configured package.
+     *
+     * @param {array|string} moduleNames an array with module names or a single
+     *        module name given as a String
+     * @return {array|string} the original module name(s) rewritten as needed
+     *         (usually to append the main script if no path was specified)
+     */
+    declarePackageModules: function(moduleNames) {
+        var returnScalar = false;
 
-    define: function(name, dependencies, implementation, config) {
-        var self = this;
+        if (!Array.isArray(moduleNames)) {
+            moduleNames = [moduleNames];
+            returnScalar = true;
+        }
 
-        console.log('DEFINE', name, dependencies);
+        var rewrittenModuleNames = [];
 
-        var pkgsConfig = self._getConfig().packages;
-        var pkgName = self._getPackageName(name);
-        var pkgConfig = pkgsConfig[pkgName];
+        for (var i=0; i < moduleNames.length; i++) {
+            var moduleName = moduleNames[i];
+            var pkgConfig = this._getPkgConfig(moduleName);
 
-        var resolvedDependencies = [];
-        var promises = [];
-        var exports;
+            if (pkgConfig) {
+                console.log("PACKAGE EXISTS FOR", moduleName);
 
-        for (var i=0; i < dependencies.length; i++) {
-            var dependency = dependencies[i];
+                moduleName = this.appendMainScript(moduleName);
 
-            if (dependency === 'require') {
-                resolvedDependencies.push(function() {
-                    // TODO: implement local require
-                    throw new Error('Local require not implemented yet');
+                // Declare module on-the-fly so that it is loaded from package
+                this._loader.addModule({
+                    name: moduleName,
+                    // TODO: can we use Object.keys ? IE8 does not support it
+                    dependencies: Object.keys(pkgConfig.dependencies),
+                    dependencyVersions: pkgConfig.dependencies,
+                    path: this._config.packagesPath + '/' + moduleName
                 });
-
-            } else if (dependency === 'module') {
-                exports = { exports: {} };
-                resolvedDependencies.push(exports);
-
-            } else if (dependency === 'exports') {
-                exports = {};
-                resolvedDependencies.push(exports);
-
-            } else {
-                var version = pkgConfig.dependencies[dependency];
-                var versionedDependency = dependency + '@' + version;
-
-                promises.push(self._require(versionedDependency).then(function(module) {
-                    resolvedDependencies.push(module)
-                }));
-            }
-        }
-
-        Promise.all(promises).then(function() {
-            implementation.apply(implementation, resolvedDependencies);
-
-            console.log('DEFINED', name);
-            self._modules[name]._resolve(exports.exports || exports);
-        })
-        .catch(function(err) {
-            console.log('ERROR defining module', name, err);
-            self._modules[name]._reject(err);
-        })
-    },
-
-    _getConfig: function() {
-        return this._loader._getConfigParser().getConfig();
-    },
-
-    /*
-     * requires a module and returns a promise resolved when the module is
-     * defined
-     */
-    _require: function(moduleName) {
-        var self = this;
-
-        var pkgsConfig = self._getConfig().packages;
-        var pkgName = self._getPackageName(moduleName)
-        var pkgConfig = pkgsConfig[pkgName];
-
-        if (moduleName == pkgName) {
-            moduleName += '/' + pkgConfig.main;
-        }
-
-        if (self._modules[moduleName]) {
-            return self._modules[moduleName].promise;
-        } else {
-            var url = moduleName.replace(pkgName, pkgConfig.path);
-
-            return self._loadModule(moduleName, url);
-        }
-    },
-
-    /*
-     * get package name from module name
-     */
-    _getPackageName: function(module) {
-        var pos = module.indexOf('/');
-        if (pos == -1) {
-            return module;
-        } else {
-            return module.substring(0, pos);
-        }
-    },
-
-    /*
-     * loads a module from a URL and returns a promise resolved when the module
-     * is defined
-     */
-    _loadModule: function(moduleName, url) {
-        var self = this;
-
-        console.log('LOAD', url);
-
-        var moduleDesc = self._modules[moduleName] = {
-            exports: undefined,
-            promise: undefined,
-            _resolve: undefined,
-            _reject: undefined
-        };
-
-        moduleDesc.promise = new Promise(function(resolve, reject) {
-            moduleDesc._resolve = function(module) {
-                console.log('RESOLVED', url);
-                moduleDesc.exports = module;
-                delete moduleDesc._resolve;
-                delete moduleDesc._reject;
-                resolve(module);
             }
 
-            moduleDesc._reject = function(err) {
-                console.log('REJECTED', url, err);
-                delete moduleDesc._resolve;
-                delete moduleDesc._reject;
-                reject(err);
-            }
-        });
+            rewrittenModuleNames.push(moduleName);
+        }
 
-        self._loadScript(url).then(function() {
-            // // TODO: tune warning timeout
-            // window.setTimeout(function() {
-            //     console.log('TIMEOUT', url);
-            // }, 5000);
-        })
-        .catch(function(err) {
-            console.log('ERRORED', url, err);
-        });
-
-        return moduleDesc.promise;
+        return returnScalar ? rewrittenModuleNames[0] : rewrittenModuleNames;
     },
 
-    /*
-     * loads a script from a URL and returns a promise resolved when the script
-     * is loaded
+    /**
+     * Translates unqualified dependencies of a module based on the package
+     * configuration of the module (if any).
+     *
+     * @param {string} moduleName the module name
+     * @param {array} dependencies the module dependencies (keyword dependencies
+     *        are left untranslated)
+     * @return {array} the rewritten qualified dependencies
      */
-    _loadScript: function(url) {
-        var self = this;
+    translatePackageDependencies: function(moduleName, dependencies) {
+        var pkgConfig = this._getPkgConfig(moduleName);
 
-        return new Promise(function(resolve, reject) {
-            var script = document.createElement('script');
+        var translatedDependencies = [];
 
-            script.src = url;
+        global.Utils.forEachDependency(
+            dependencies,
+            function(dependency, isKeyword, i) {
+                if (!isKeyword) {
+                    var version = pkgConfig.dependencies[dependency];
 
-            // On ready state change is needed for IE < 9, not sure if that is needed anymore,
-            // it depends which browsers will we support at the end
-            script.onload = script.onreadystatechange = function() { /* istanbul ignore else */
-                if (!this.readyState || /* istanbul ignore next */ this.readyState === 'complete' || /* istanbul ignore next */ this.readyState === 'load') {
-                    script.onload = script.onreadystatechange = null;
-
-                    resolve(script);
-
-                    // self.emit('scriptLoaded', url.modules);
+                    dependency += '@' + version
                 }
-            };
 
-            // If some script fails to load, reject the main Promise
-            script.onerror = function() {
-                document.head.removeChild(script);
+                translatedDependencies.push(dependency);
+            });
 
-                reject(script);
-            };
+        return translatedDependencies;
+    },
 
-            document.head.appendChild(script);
-        });
+    /**
+     * Appends package.json's main script to module names if necessary.
+     *
+     * @param {array|string} moduleNames an array with module names or a single
+     *        module name given as a String
+     * @return {array|string} the original module name(s) rewritten as needed
+     *         (usually to append the main script if no path was specified)
+     */
+    appendMainScript: function(moduleNames) {
+        var returnScalar = false;
+
+        if (!Array.isArray(moduleNames)) {
+            moduleNames = [moduleNames];
+            returnScalar = true;
+        }
+
+        var rewrittenModuleNames = [];
+
+        for (var i = 0; i < moduleNames.length; i++) {
+            var moduleName = moduleNames[i];
+
+            if (this._isPackageName(moduleName)) {
+                var pkgConfig = this._pkgsConfig[moduleName];
+
+                rewrittenModuleNames.push(moduleName + '/' + pkgConfig.main);
+            }
+        }
+
+        return returnScalar ? rewrittenModuleNames[0] : rewrittenModuleNames;
+    },
+
+    /**
+     * Get the configuration of a package given one of its modules name.
+     *
+     * @protected
+     * @param {string} moduleName a module name
+     * @return {object} the configuration of the package containing the module
+     */
+    _getPkgConfig: function(moduleName) {
+        var pkgName = this._getPkgName(moduleName);
+
+        return this._pkgsConfig[pkgName];
+    },
+
+    /**
+     * Get the name of the package containing a module.
+     *
+     * @protected
+     * @param {string} moduleName a module name
+     * @return {object} the name of the package containing the module
+     */
+    _getPkgName: function(moduleName) {
+        return moduleName.split('/')[0];
+    },
+
+    /**
+     * Check whether or not a module name refers to the canonical name of the
+     * package containing it.
+     *
+     * @protected
+     * @param {string} moduleName a module name
+     * @return {boolean} true if module name is a package name too
+     */
+    _isPackageName: function(moduleName) {
+        return moduleName.indexOf('/') == -1;
     }
 }
