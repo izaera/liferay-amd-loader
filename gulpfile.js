@@ -110,21 +110,28 @@ gulp.task('create-loader-pure', ['create-loader-pure-debug'], function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('create-loader-pure-wrapped', ['jsdoc', 'wrap-event-emitter', 'wrap-config-parser', 'wrap-dependency-builder', 'wrap-path-resolver', 'wrap-url-builder', 'wrap-script-loader', 'wrap-pkg-loader', 'wrap-utils'], function() {
-    return gulp.src([
-            'umd/event-emitter.js',
-            'umd/config-parser.js',
-            'umd/dependency-builder.js',
-            'umd/url-builder.js',
-            'umd/path-resolver.js',
-            'umd/script-loader.js',
-            'umd/pkg-loader.js',
-            'umd/utils.js',
-        ])
-        .pipe(concat('loader-pure-wrapped.js'))
-        .pipe(gulp.dest('dist'));
-});
-
+gulp.task(
+    'create-loader-pure-wrapped',
+    [
+        'jsdoc', 'wrap-event-emitter', 'wrap-config-parser',
+        'wrap-dependency-builder', 'wrap-path-resolver', 'wrap-url-builder',
+        'wrap-script-loader', 'wrap-pkg-loader', 'wrap-utils'
+    ],
+    function() {
+        return gulp.src([
+                'umd/event-emitter.js',
+                'umd/config-parser.js',
+                'umd/dependency-builder.js',
+                'umd/path-resolver.js',
+                'umd/url-builder.js',
+                'umd/script-loader.js',
+                'umd/pkg-loader.js',
+                'umd/utils.js',
+            ])
+            .pipe(concat('loader-pure-wrapped.js'))
+            .pipe(gulp.dest('dist'));
+    }
+);
 
 gulp.task('copy-es6promise-map', function() {
     return gulp.src([
@@ -153,13 +160,19 @@ gulp.task('packages', function() {
         .pipe(gulp.dest('dist/demo/packages'));
 });
 
-gulp.task('modules', ['copy-bower', 'modules2', 'modules3', 'packages'], function() {
-    return gulp.src('src/modules/**/*.js')
-        .pipe(babel({
-            plugins: ['transform-es2015-modules-amd']
-        }))
-        .pipe(gulp.dest('dist/demo/modules'));
-});
+gulp.task(
+    'modules',
+    [
+        'copy-bower', 'modules2', 'modules3', 'packages'
+    ],
+    function() {
+        return gulp.src('src/modules/**/*.js')
+            .pipe(babel({
+                plugins: ['transform-es2015-modules-amd']
+            }))
+            .pipe(gulp.dest('dist/demo/modules'));
+    }
+);
 
 gulp.task('test', ['build'], function() {
     var streamStripDebug = gulp.src(['umd/**/*.js', '!umd/event-emitter.js'])
@@ -181,74 +194,17 @@ gulp.task('watch', ['build'], function() {
     gulp.watch(['src/**/*', '!src/config/*'], ['build']);
 });
 
-gulp.task('wrap-config-parser', function() {
-    return gulp.src('src/template/config-parser.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/config-parser.js').toString()
-        }))
-        .pipe(rename('config-parser.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-pkg-loader', function() {
-    return gulp.src('src/template/pkg-loader.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/pkg-loader.js').toString()
-        }))
-        .pipe(rename('pkg-loader.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-utils', function() {
-    return gulp.src('src/template/utils.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/utils.js').toString()
-        }))
-        .pipe(rename('utils.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-event-emitter', function() {
-    return gulp.src('src/template/event-emitter.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/event-emitter.js').toString()
-        }))
-        .pipe(rename('event-emitter.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-dependency-builder', function() {
-    return gulp.src('src/template/dependency-builder.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/dependency-builder.js').toString()
-        }))
-        .pipe(rename('dependency-builder.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-script-loader', function() {
-    return gulp.src('src/template/script-loader.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/script-loader.js').toString()
-        }))
-        .pipe(rename('script-loader.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-path-resolver', function() {
-    return gulp.src('src/template/path-resolver.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/path-resolver.js').toString()
-        }))
-        .pipe(rename('path-resolver.js'))
-        .pipe(gulp.dest('umd'));
-});
-
-gulp.task('wrap-url-builder', function() {
-    return gulp.src('src/template/url-builder.template')
-        .pipe(template({
-            source: fs.readFileSync('src/js/url-builder.js').toString()
-        }))
-        .pipe(rename('url-builder.js'))
-        .pipe(gulp.dest('umd'));
-});
+[
+    'config-parser', 'pkg-loader', 'utils', 'event-emitter',
+    'dependency-builder','script-loader','path-resolver', 'url-builder'
+]
+.forEach(function(baseName) {
+    gulp.task('wrap-' + baseName, function() {
+        return gulp.src('src/template/' + baseName + '.template')
+            .pipe(template({
+                source: fs.readFileSync('src/js/' + baseName + '.js').toString()
+            }))
+            .pipe(rename(baseName + '.js'))
+            .pipe(gulp.dest('umd'));
+    });
+})
