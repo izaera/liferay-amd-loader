@@ -720,7 +720,9 @@ var LoaderProtoMethods = {
      * @param {array} modules List of modules to which implementation should be set.
      */
     _setModuleImplementation: function(modules) {
-        var registeredModules = this._getConfigParser().getModules();
+        var configParser = this._getConfigParser();
+        var pkgLoader = this._getPkgLoader();
+        var registeredModules = configParser.getModules();
 
         for (var i = 0; i < modules.length; i++) {
             var module = modules[i];
@@ -736,7 +738,6 @@ var LoaderProtoMethods = {
 
             // Leave exports implementation undefined by default
             var exportsImpl;
-            var configParser = this._getConfigParser();
 
             for (var j = 0; j < module.dependencies.length; j++) {
                 var dependency = module.dependencies[j];
@@ -760,6 +761,10 @@ var LoaderProtoMethods = {
                             global.require.apply(global.Loader, arguments);
                         } else {
                             var mappedModuleName = configParser.mapModule(moduleName);
+
+                            mappedModuleName = pkgLoader.translatePackageDependencies(module.name, mappedModuleName);
+
+                            mappedModuleName = pkgLoader.appendMainScript(mappedModuleName);
 
                             for (var k = 0; k < module.dependencies.length; k++) {
                                 var dependency = module.dependencies[k];

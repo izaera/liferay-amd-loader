@@ -65,11 +65,18 @@ PkgLoader.prototype = {
      * configuration of the module (if any).
      *
      * @param {string} moduleName the module name
-     * @param {array} dependencies the module dependencies (keyword dependencies
-     *        are left untranslated)
+     * @param {array|string} dependencies the module dependencies (keyword
+     *        dependencies are left untranslated)
      * @return {array} the rewritten qualified dependencies
      */
     translatePackageDependencies: function(moduleName, dependencies) {
+        var returnScalar = false;
+
+        if (!Array.isArray(dependencies)) {
+            dependencies = [dependencies];
+            returnScalar = true;
+        }
+
         var pkgConfig = this._getPkgConfig(moduleName);
 
         if (!pkgConfig) {
@@ -90,7 +97,7 @@ PkgLoader.prototype = {
                 translatedDependencies.push(dependency);
             });
 
-        return translatedDependencies;
+        return returnScalar ? translatedDependencies[0] : translatedDependencies;
     },
 
     /**
