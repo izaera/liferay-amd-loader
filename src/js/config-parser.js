@@ -137,6 +137,40 @@ ConfigParser.prototype = {
     },
 
     /**
+     * Maps dependecy names to their aliases and version them. Example:
+     *
+     * @protected
+     * @param {object} module The module that defines the context in which the mapping of versions is done
+     * @param {array|string} dependency The name(s) of the dependencies being mapped
+     * @return {array|string} The mapped and versioned dependency name(s)
+     */
+    mapDependency: function(module, dependency) {
+        if (!module.dependencyVersions) {
+            return dependency;
+        }
+
+        var dependencies;
+
+        if (Array.isArray(dependency)) {
+            dependencies = dependency.slice(0);
+        } else {
+            dependencies = [dependency];
+        }
+
+        for (var i = 0; i < dependencies.length; i++) {
+            var tmpDependency = dependencies[i];
+
+            if (tmpDependency !== 'require' && tmpDependency !== 'exports' && tmpDependency !== 'module') {
+                tmpDependency += '@' + module.dependencyVersions[tmpDependency];
+            }
+
+            dependencies[i] = this.mapModule(tmpDependency)
+        }
+
+        return Array.isArray(dependency) ? dependencies : dependencies[0];
+    },
+
+    /**
      * Parses configuration object.
      *
      * @protected

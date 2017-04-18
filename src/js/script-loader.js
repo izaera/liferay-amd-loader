@@ -418,7 +418,7 @@ var LoaderProtoMethods = {
         for (var i = 0; i < moduleNames.length; i++) {
             var module = registeredModules[moduleNames[i]];
 
-            var mappedDependencies = configParser.mapModule(module.dependencies);
+            var mappedDependencies = configParser.mapDependency(module, module.dependencies);
 
             for (var j = 0; j < mappedDependencies.length; j++) {
                 var dependency = mappedDependencies[j];
@@ -744,7 +744,7 @@ var LoaderProtoMethods = {
                     dependencyImplementations.push(localRequire);
                 } else {
                     // otherwise set as value the implementation of the registered module
-                    var dependencyModule = registeredModules[configParser.mapModule(dependency)];
+                    var dependencyModule = registeredModules[configParser.mapDependency(module, dependency)];
 
                     var impl = dependencyModule.implementation;
 
