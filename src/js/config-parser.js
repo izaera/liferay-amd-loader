@@ -145,10 +145,6 @@ ConfigParser.prototype = {
      * @return {array|string} The mapped and versioned dependency name(s)
      */
     mapDependency: function(module, dependency) {
-        if (!module.dependencyVersions) {
-            return dependency;
-        }
-
         var dependencies;
 
         if (Array.isArray(dependency)) {
@@ -157,14 +153,20 @@ ConfigParser.prototype = {
             dependencies = [dependency];
         }
 
-        for (var i = 0; i < dependencies.length; i++) {
-            var tmpDependency = dependencies[i];
+        if (module.dependencyVersions) {
+            for (var i = 0; i < dependencies.length; i++) {
+                var tmpDependency = dependencies[i];
 
-            if (tmpDependency !== 'require' && tmpDependency !== 'exports' && tmpDependency !== 'module') {
-                tmpDependency += '@' + module.dependencyVersions[tmpDependency];
+                if (tmpDependency === 'require' || tmpDependency === 'exports' || tmpDependency === 'module') {
+                    continue;
+                }
+
+                dependencies[i] = tmpDependency + '@' + module.dependencyVersions[tmpDependency];
             }
+        }
 
-            dependencies[i] = this.mapModule(tmpDependency)
+        for (var i = 0; i < dependencies.length; i++) {
+            dependencies[i] = this.mapModule(dependencies[i]);
         }
 
         return Array.isArray(dependency) ? dependencies : dependencies[0];

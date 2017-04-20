@@ -727,12 +727,10 @@ var LoaderProtoMethods = {
                         if (argc > 1) {
                             global.require.apply(global.Loader, arguments);
                         } else {
-                            var mappedModuleName = configParser.mapModule(moduleName);
-
                             for (var k = 0; k < module.dependencies.length; k++) {
                                 var dependency = module.dependencies[k];
 
-                                if (dependency === mappedModuleName) {
+                                if (dependency === moduleName) {
                                     return dependencyImplementations[k];
                                 }
                             }
