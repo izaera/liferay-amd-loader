@@ -117,12 +117,23 @@ ConfigParser.prototype = {
             for (var alias in this._config.maps) {
                 /* istanbul ignore else */
                 if (Object.prototype.hasOwnProperty.call(this._config.maps, alias)) {
-                    if (tmpModule === alias || tmpModule.indexOf(alias + '/') === 0) {
-                        tmpModule = this._config.maps[alias] + tmpModule.substring(alias.length);
-                        modules[i] = tmpModule;
+                    var aliasValue = this._config.maps[alias];
 
-                        found = true;
-                        break;
+                    if (aliasValue.value && aliasValue.exact) {
+                        if (modules[i] === alias) {
+                            modules[i] = aliasValue.value;
+
+                            found = true;
+                            break;
+                        }
+                    } else {
+                        if (tmpModule === alias || tmpModule.indexOf(alias + '/') === 0) {
+                            tmpModule = aliasValue + tmpModule.substring(alias.length);
+                            modules[i] = tmpModule;
+
+                            found = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -161,7 +172,20 @@ ConfigParser.prototype = {
                     continue;
                 }
 
-                dependencies[i] = tmpDependency + '@' + module.dependencyVersions[tmpDependency];
+                var j = tmpDependency.indexOf('/');
+
+                if (j == -1) {
+                    j = tmpDependency.length + 1;
+                }
+
+                var packageName = tmpDependency.substring(0, j);
+                var path = tmpDependency.substring(j);
+
+                var version = module.dependencyVersions[packageName];
+
+                if (version) {
+                    dependencies[i] = packageName + '@' + version + path;
+                }
             }
         }
 

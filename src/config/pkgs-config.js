@@ -6,10 +6,22 @@ var __CONFIG__ = {
     }
 };
 __CONFIG__.maps = {
-    'extender-experiment-portlet@1.0.0': 'extender-experiment-portlet@1.0.0/lib/index.es.js',
-    'isarray@1.0.0': 'isarray@1.0.0/index.js',
-    'isarray@2.0.1': 'isarray@2.0.1/index.js',
-    'isobject@2.1.0': 'isobject@2.1.0/index.js',
+    'extender-experiment-portlet@1.0.0': {
+        value: 'extender-experiment-portlet@1.0.0/lib/index.es.js',
+        exact: true
+    },
+    'isarray@1.0.0': {
+        value: 'isarray@1.0.0/index.js',
+        exact: true
+    },
+    'isarray@2.0.1': {
+        value: 'isarray@2.0.1/index.js',
+        exact: true
+    },
+    'isobject@2.1.0': {
+        value: 'isobject@2.1.0/index.js',
+        exact: true
+    },
 };
 __CONFIG__.modules = {
     'extender-experiment-portlet@1.0.0/lib/index.es.js': {

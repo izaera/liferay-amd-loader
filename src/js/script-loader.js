@@ -727,15 +727,15 @@ var LoaderProtoMethods = {
                         if (argc > 1) {
                             global.require.apply(global.Loader, arguments);
                         } else {
-                            for (var k = 0; k < module.dependencies.length; k++) {
-                                var dependency = module.dependencies[k];
+                            moduleName = configParser.mapDependency(module, moduleName);
 
-                                if (dependency === moduleName) {
-                                    return dependencyImplementations[k];
-                                }
+                            var dependencyModule = configParser.getModules()[moduleName];
+
+                            if (!dependencyModule || !dependencyModule.implementation) {
+                                throw new Error('Module "' + moduleName + '" has not been loaded yet for context: ' + module.name);
                             }
 
-                            throw new Error('Module "' + moduleName + '" has not been loaded yet for context: ' + module.name);
+                            return dependencyModule.implementation
                         }
                     };
 
