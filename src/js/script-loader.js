@@ -705,6 +705,7 @@ var LoaderProtoMethods = {
             // Leave exports implementation undefined by default
             var exportsImpl;
             var configParser = this._getConfigParser();
+            var pathResolver = this._getPathResolver();
 
             for (var j = 0; j < module.dependencies.length; j++) {
                 var dependency = module.dependencies[j];
@@ -727,6 +728,8 @@ var LoaderProtoMethods = {
                         if (argc > 1) {
                             global.require.apply(global.Loader, arguments);
                         } else {
+                            moduleName = pathResolver.resolvePath(module.name, moduleName);
+
                             moduleName = configParser.mapDependency(module, moduleName);
 
                             var dependencyModule = configParser.getModules()[moduleName];
