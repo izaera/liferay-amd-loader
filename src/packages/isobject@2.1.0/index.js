@@ -1,4 +1,4 @@
-define('isobject@2.1.0/index.js', ['module', 'require', 'isarray'], function (module, require) {
+define('isobject@2.1.0/index', ['module', 'require', 'isarray'], function (module, require) {
     /*!
      * isobject <https://github.com/jonschlinkert/isobject>
      *

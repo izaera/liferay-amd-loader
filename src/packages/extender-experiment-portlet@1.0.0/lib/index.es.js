@@ -1,4 +1,4 @@
-define('extender-experiment-portlet@1.0.0/lib/index.es.js', ['exports', 'isarray', 'isobject'], function (exports, _isarray, _isobject) {
+define('extender-experiment-portlet@1.0.0/lib/index.es', ['exports', 'require', 'isarray', 'isobject', './m1', '../lib2/lib/m2'], function (exports, require, _isarray, _isobject, _m1, _m2) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -9,6 +9,10 @@ define('extender-experiment-portlet@1.0.0/lib/index.es.js', ['exports', 'isarray
 	var _isarray2 = _interopRequireDefault(_isarray);
 
 	var _isobject2 = _interopRequireDefault(_isobject);
+
+    var _m12 = _interopRequireDefault(_m1);
+
+    var _m22 = _interopRequireDefault(_m2);
 
 	function _interopRequireDefault(obj) {
 		return obj && obj.__esModule ? obj : {
@@ -26,6 +30,13 @@ define('extender-experiment-portlet@1.0.0/lib/index.es.js', ['exports', 'isarray
 		console.log('Calling isObject([]) from index.es.js');
 		t = (0, _isobject2.default)([]);
 		console.log('which returns', t);
+
+        console.log('m1 -', _m12.default);
+
+        console.log('m2 -', _m22.default);
+
+        console.log('required m1 -', require('./m1').default);
+
+        console.log('required m2 -', require('../lib2/lib/m2').default);
 	}
 });
-//# sourceMappingURL=index.es.js.map

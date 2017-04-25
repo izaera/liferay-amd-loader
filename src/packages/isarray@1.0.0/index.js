@@ -1,4 +1,4 @@
-define('isarray@1.0.0/index.js', ['module', 'require'], function (module, require) {
+define('isarray@1.0.0/index', ['module', 'require'], function (module, require) {
     var toString = {}.toString;
 
     module.exports = /*Array.isArray ||*/ function (arr) {
