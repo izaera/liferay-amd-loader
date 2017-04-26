@@ -119,6 +119,18 @@
             }, function(error) {
                 console.error(error);
             });
+
+            require('liferay@1.0.0/package', function(pkg) {
+                console.log('liferay@1.0.0/package', pkg.default);
+            }, function(error) {
+                console.error(error);
+            });
+
+            require('liferay@1.0.0/package/index', function(pkg) {
+                console.log('liferay@1.0.0/package/index', pkg.default);
+            }, function(error) {
+                console.error(error);
+            });
         </script>
     </body>
 </html>
