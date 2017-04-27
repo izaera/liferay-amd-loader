@@ -119,7 +119,7 @@ ConfigParser.prototype = {
                 if (Object.prototype.hasOwnProperty.call(this._config.maps, alias)) {
                     var aliasValue = this._config.maps[alias];
 
-                    if (aliasValue.value && aliasValue.exact) {
+                    if (aliasValue.value && aliasValue.exactMatch) {
                         if (modules[i] === alias) {
                             modules[i] = aliasValue.value;
 

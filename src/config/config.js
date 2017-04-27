@@ -12,7 +12,7 @@ __CONFIG__.maps = {
     'liferay2': 'liferay@1.0.0',
     'liferay@1.0.0/package': {
         value: 'liferay@1.0.0/package/index',
-        exact: true
+        exactMatch: true
     }
 };
 __CONFIG__.modules = {

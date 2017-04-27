@@ -91,7 +91,7 @@ describe('ConfigParser', function() {
         assert.strictEqual('liferay@1.0.0', configParser.mapModule('liferay'));
     });
 
-    it('should respect "exact" mappings', function() {
+    it('should respect "exactMatch" mappings', function() {
         var configParser = new global.ConfigParser();
 
         configParser.addModule({
@@ -100,7 +100,7 @@ describe('ConfigParser', function() {
 
         configParser._config = {
             maps: {
-                'liferay@1.0.0': {value: 'liferay@1.0.0/index', exact: true}
+                'liferay@1.0.0': {value: 'liferay@1.0.0/index', exactMatch: true}
             }
         };
 
