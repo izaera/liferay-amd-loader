@@ -102,20 +102,6 @@ ConfigParser.prototype = {
      * @return {array|string} The mapped module or array of mapped modules.
      */
     mapModule: function(module, contextMap) {
-        if (!this._config.maps && !contextMap) {
-            return module;
-        }
-
-        var maps = {};
-
-        if (this._config.maps) {
-            this._mix(maps, this._config.maps);
-        }
-
-        if (contextMap) {
-            this._mix(maps, contextMap);
-        }
-
         var modules;
 
         if (Array.isArray(module)) {
@@ -124,15 +110,35 @@ ConfigParser.prototype = {
             modules = [module];
         }
 
+        if (contextMap) {
+            this._matchModules(modules, contextMap);
+        }
+
+        if (this._config.maps) {
+            this._matchModules(modules, this._config.maps);
+        }
+
+        return Array.isArray(module) ? modules : modules[0];
+    },
+
+    /**
+     * Maps module names to their aliases in place
+     *
+     * @protected
+     * @param {array} modules The array of modules which have to be mapped (this array is modified in place).
+     * @param {object} map Module mapping definition
+     * @return the given modules array
+     */
+    _matchModules: function(modules, map) {
         for (var i = 0; i < modules.length; i++) {
             var tmpModule = modules[i];
 
             var found = false;
 
-            for (var alias in maps) {
+            for (var alias in map) {
                 /* istanbul ignore else */
-                if (Object.prototype.hasOwnProperty.call(maps, alias)) {
-                    var aliasValue = maps[alias];
+                if (Object.prototype.hasOwnProperty.call(map, alias)) {
+                    var aliasValue = map[alias];
 
                     if (aliasValue.value && aliasValue.exactMatch) {
                         if (modules[i] === alias) {
@@ -147,8 +153,7 @@ ConfigParser.prototype = {
                         }
 
                         if (tmpModule === alias || tmpModule.indexOf(alias + '/') === 0) {
-                            tmpModule = aliasValue + tmpModule.substring(alias.length);
-                            modules[i] = tmpModule;
+                            modules[i] = aliasValue + tmpModule.substring(alias.length);
 
                             found = true;
                             break;
@@ -157,32 +162,17 @@ ConfigParser.prototype = {
                 }
             }
 
+            if (found) {
+                continue;
+            }
+
             /* istanbul ignore else */
-            if(!found && typeof maps['*'] === 'function') {
-                modules[i] = maps['*'](tmpModule);
+            if (typeof map['*'] === 'function') {
+                modules[i] = map['*'](tmpModule);
             }
         }
 
-        return Array.isArray(module) ? modules : modules[0];
-    },
-
-    /**
-     * Adds all properties from the supplier to the receiver.
-     * The function will add all properties, not only these owned by the supplier.
-     *
-     * @private
-     * @method _mix
-     * @param {Object} receiver The object which will receive properties.
-     * @param {Object} supplier The object which provides properties.
-     */
-    _mix: function(receiver, supplier) {
-        var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-        for (var key in supplier) {
-            if (hasOwnProperty.call(supplier, key)) {
-                receiver[key] = supplier[key];
-            }
-        }
+        return modules;
     },
 
     /**
