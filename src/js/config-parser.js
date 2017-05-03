@@ -111,14 +111,53 @@ ConfigParser.prototype = {
         }
 
         if (contextMap) {
-            this._matchModules(modules, contextMap);
+            modules = modules.map(this._getModuleMatcher(contextMap));
         }
 
         if (this._config.maps) {
-            this._matchModules(modules, this._config.maps);
+            modules = modules.map(this._getModuleMatcher(this._config.maps));
         }
 
         return Array.isArray(module) ? modules : modules[0];
+    },
+
+    /**
+     * Returns a mapper function to convert maps module names to their aliases
+     *
+     * @protected
+     * @param {object} map Module mapping definition
+     * @return a mapper function that receives a module name and maps it according to the given map
+     */
+    _getModuleMatcher: function(map) {
+        return function(module) {
+            for (var alias in map) {
+                /* istanbul ignore else */
+                if (Object.prototype.hasOwnProperty.call(map, alias)) {
+                    var aliasValue = map[alias];
+
+                    if (aliasValue.value && aliasValue.exactMatch) {
+                        if (module === alias) {
+                            return aliasValue.value;
+                        }
+                    } else {
+                        if (aliasValue.value) {
+                            aliasValue = aliasValue.value;
+                        }
+
+                        if (module === alias || module.indexOf(alias + '/') === 0) {
+                            return aliasValue + module.substring(alias.length);
+                        }
+                    }
+                }
+            }
+
+            /* istanbul ignore else */
+            if (typeof map['*'] === 'function') {
+                return map['*'](module);
+            }
+
+            return module;
+        };
     },
 
     /**
