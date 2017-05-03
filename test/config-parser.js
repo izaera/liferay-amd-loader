@@ -158,7 +158,7 @@ describe('ConfigParser', function() {
         assert.sameMembers(['liferay@1.0.0', 'liferay2test'], configParser.mapModule(['liferay', 'liferay2']));
     });
 
-    it('should map versioned local dependencies correctly', function() {
+    it('should map local modules correctly', function() {
         var configParser = new global.ConfigParser();
 
         var moduleMap = {
