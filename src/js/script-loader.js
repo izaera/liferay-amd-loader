@@ -183,12 +183,10 @@ var LoaderProtoMethods = {
 		// TODO: This could be extracted as an inline function (hint)
 		if (Array.isArray(arguments[0])) {
 			modules = arguments[0];
-			successCallback = typeof arguments[1] === 'function'
-				? arguments[1]
-				: null;
-			failureCallback = typeof arguments[2] === 'function'
-				? arguments[2]
-				: null;
+			successCallback =
+				typeof arguments[1] === 'function' ? arguments[1] : null;
+			failureCallback =
+				typeof arguments[2] === 'function' ? arguments[2] : null;
 		} else {
 			modules = [];
 
@@ -199,9 +197,10 @@ var LoaderProtoMethods = {
 					/* istanbul ignore else */
 				} else if (typeof arguments[i] === 'function') {
 					successCallback = arguments[i];
-					failureCallback = typeof arguments[++i] === 'function'
-						? arguments[i]
-						: /* istanbul ignore next */ null;
+					failureCallback =
+						typeof arguments[++i] === 'function'
+							? arguments[i]
+							: /* istanbul ignore next */ null;
 
 					break;
 				}
@@ -375,6 +374,15 @@ var LoaderProtoMethods = {
 		// dependencies and implementation.
 		var module = config || {};
 		var configParser = this._getConfigParser();
+
+		if (configParser.getConfig().ignoreVersions) {
+			var nameParts = name.split('/');
+			var packageParts = nameParts[0].split('@');
+
+			nameParts[0] = packageParts[0];
+
+			name = nameParts.join('/');
+		}
 
 		var pathResolver = this._getPathResolver();
 
